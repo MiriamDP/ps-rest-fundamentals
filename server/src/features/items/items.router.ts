@@ -3,7 +3,8 @@ import { deleteItem, getItemDetail, getItems, upsertItem } from "./items.service
 import { validate } from "../../middleware/validation.middleware";
 import { idNumberRequestSchema, itemPOSTRequestSchema, itemPUTRequestSchema } from "../types";
 import { create } from "xmlbuilder2";
-import { validatedAccessToken } from "../../middleware/auth.middleware";
+import { checkRequiredScope, validatedAccessToken } from "../../middleware/auth.middleware";
+import { ItemsPermissions, SecurityPermissions } from "../../config/permissions";
 
 export const itemsRouter = express.Router();
 
@@ -38,7 +39,7 @@ itemsRouter.get("/:id",validate(idNumberRequestSchema),async(req,res)=>{
   }
 });
 
-itemsRouter.post("/",validatedAccessToken,validate(itemPOSTRequestSchema),async(req,res)=>{
+itemsRouter.post("/",validatedAccessToken,checkRequiredScope(ItemsPermissions.Create),validate(itemPOSTRequestSchema),async(req,res)=>{
   const data=itemPOSTRequestSchema.parse(req);
   const item=await upsertItem(data.body);
   if(item!=null){
@@ -54,7 +55,7 @@ itemsRouter.post("/",validatedAccessToken,validate(itemPOSTRequestSchema),async(
   }
 });
 
-itemsRouter.delete("/:id",validatedAccessToken,validate(idNumberRequestSchema),async(req,res)=>{
+itemsRouter.delete("/:id",validatedAccessToken,checkRequiredScope(SecurityPermissions.Deny),validate(idNumberRequestSchema),async(req,res)=>{
   const id=idNumberRequestSchema.parse(req).params.id;
   const item=await deleteItem(id);
   if(item!=null){
@@ -64,7 +65,7 @@ itemsRouter.delete("/:id",validatedAccessToken,validate(idNumberRequestSchema),a
   }
 });
 
-itemsRouter.put("/:id",validatedAccessToken,validate(itemPUTRequestSchema),async(req,res)=>{
+itemsRouter.put("/:id",validatedAccessToken,checkRequiredScope(ItemsPermissions.Write),validate(itemPUTRequestSchema),async(req,res)=>{
   const data=itemPUTRequestSchema.parse(req);
   const item=await upsertItem(data.body, data.params.id);
   if(item!=null){

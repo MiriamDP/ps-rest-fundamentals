@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { InvalidTokenError, UnauthorizedError } from "express-oauth2-jwt-bearer";
+import { InsufficientScopeError, InvalidTokenError, UnauthorizedError } from "express-oauth2-jwt-bearer";
 
 export const errorHandler = (
   error: Error,
@@ -15,6 +15,11 @@ export const errorHandler = (
   }
   if(error instanceof UnauthorizedError){
     const message="Requires authentication";
+    response.status(error.status).json({message});
+    return;
+  }
+  if(error instanceof InsufficientScopeError){
+    const message="Permission denied";
     response.status(error.status).json({message});
     return;
   }

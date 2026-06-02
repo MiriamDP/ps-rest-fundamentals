@@ -3,15 +3,17 @@ import { deleteCustomer, getCustomerDetail, getCustomers, searchCustomers, upser
 import { getOrdersForCustomer } from "../orders/orders.service";
 import { validate } from "../../middleware/validation.middleware";
 import { customerPOSTRequestSchema, customerPUTRequestSchema, idNumberRequestSchema, idUUIDRequestSchema } from "../types";
+import { CustomersPermissions, SecurityPermissions } from "../../config/permissions";
+import { checkRequiredScope } from "../../middleware/auth.middleware";
 
 export const customersRouter = express.Router();
 
-customersRouter.get("/",async(req,res)=>{
+customersRouter.get("/",checkRequiredScope(CustomersPermissions.Read),async(req,res)=>{
   const customers=await getCustomers();
   res.json(customers);
 });
 
-customersRouter.get("/:id",validate(idUUIDRequestSchema),async(req,res)=>{
+customersRouter.get("/:id",checkRequiredScope(CustomersPermissions.Read_Single),validate(idUUIDRequestSchema),async(req,res)=>{
   const id=idUUIDRequestSchema.parse(req).params.id;
   const customer=await getCustomerDetail(id);
   if(customer!=null){
@@ -21,19 +23,19 @@ customersRouter.get("/:id",validate(idUUIDRequestSchema),async(req,res)=>{
   }
 });
 
-customersRouter.get("/:id/orders", async(req,res)=>{
+customersRouter.get("/:id/orders", checkRequiredScope(CustomersPermissions.Read_Order),checkRequiredScope(CustomersPermissions.Read),async(req,res)=>{
     const id=req.params.id;
     const orders=await getOrdersForCustomer(id);
     res.json(orders);
 });
 
-customersRouter.get("/search/:query", async(req,res)=>{
+customersRouter.get("/search/:query",checkRequiredScope(CustomersPermissions.Read), async(req,res)=>{
     const query=req.params.query;
     const customer=await searchCustomers(query);
     res.json(customer);
 });
 
-customersRouter.post("/",validate(customerPOSTRequestSchema),async(req,res)=>{
+customersRouter.post("/",checkRequiredScope(CustomersPermissions.Create),validate(customerPOSTRequestSchema),async(req,res)=>{
   const data=customerPOSTRequestSchema.parse(req);
   const customer=await upsertCustomer(data.body);
   if(customer!=null){
@@ -43,7 +45,7 @@ customersRouter.post("/",validate(customerPOSTRequestSchema),async(req,res)=>{
   }
 });
 
-customersRouter.delete("/:id",validate(idUUIDRequestSchema),async(req,res)=>{
+customersRouter.delete("/:id",checkRequiredScope(SecurityPermissions.Deny),validate(idUUIDRequestSchema),async(req,res)=>{
   const id=idUUIDRequestSchema.parse(req).params.id;
   const item=await deleteCustomer(id);
   if(item!=null){
@@ -53,7 +55,7 @@ customersRouter.delete("/:id",validate(idUUIDRequestSchema),async(req,res)=>{
   }
 });
 
-customersRouter.put("/:id",validate(customerPUTRequestSchema),async(req,res)=>{
+customersRouter.put("/:id",checkRequiredScope(CustomersPermissions.Write),validate(customerPUTRequestSchema),async(req,res)=>{
   const data=customerPUTRequestSchema.parse(req);
   const customer=await upsertCustomer(data.body, data.params.id);
   if(customer!=null){
