@@ -1,6 +1,8 @@
 import express from "express";
 import { getCustomerDetail, getCustomers, searchCustomers } from "./customers.service";
 import { getOrdersForCustomer } from "../orders/orders.service";
+import { validate } from "../../middleware/validation.middleware";
+import { idNumberRequestSchema, idUUIDRequestSchema } from "../types";
 
 export const customersRouter = express.Router();
 
@@ -9,8 +11,8 @@ customersRouter.get("/",async(req,res)=>{
   res.json(customers);
 });
 
-customersRouter.get("/:id",async(req,res)=>{
-  const id=req.params.id;
+customersRouter.get("/:id",validate(idUUIDRequestSchema),async(req,res)=>{
+  const id=idUUIDRequestSchema.parse(req).params.id;
   const customer=await getCustomerDetail(id);
   if(customer!=null){
     res.json(customer);

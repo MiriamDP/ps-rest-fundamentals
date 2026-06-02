@@ -1,5 +1,7 @@
 import express from "express";
 import { getItemDetail, getItems } from "./items.service";
+import { validate } from "../../middleware/validation.middleware";
+import { idNumberRequestSchema } from "../types";
 
 export const itemsRouter = express.Router();
 
@@ -11,8 +13,8 @@ itemsRouter.get("/",async(req,res)=>{
   res.json(items);
 });
 
-itemsRouter.get("/:id",async(req,res)=>{
-  const id=parseInt(req.params.id);
+itemsRouter.get("/:id",validate(idNumberRequestSchema),async(req,res)=>{
+  const id=idNumberRequestSchema.parse(req).params.id;
   const item=await getItemDetail(id);
   if(item!=null){
     item.imageUrl=buildImageUrl(req, item.id);
