@@ -1,7 +1,7 @@
 import express from "express";
 import { addOrderItems, deleteOrder, deleteOrderItem, getOrderDetail, getOrders, upsertOrder } from "./orders.service";
 import { validate } from "../../middleware/validation.middleware";
-import { idItemIdUUIDRequestSchema, idUUIDRequestSchema, orderItemsDTORequestSchema, orderPOSTRequestSchema, pagingRequestSchema } from "../types";
+import { idItemIdUUIDRequestSchema, idUUIDRequestSchema, orderItemsDTORequestSchema, orderPOSTRequestSchema, orderPUTRequestSchema, pagingRequestSchema } from "../types";
 
 export const ordersRouter = express.Router();
 
@@ -58,5 +58,16 @@ ordersRouter.delete("/:id/items/:itemId",validate(idItemIdUUIDRequestSchema),asy
     res.status(201).json(order);
   }else{
     res.status(500).json({message:"Order or Item nor found"});
+  }
+});
+
+ordersRouter.put("/:id",validate(orderPUTRequestSchema),async(req,res)=>{
+  const data=orderPUTRequestSchema.parse(req);
+  const orderData={customerId: "",...data.body};
+  const order=await upsertOrder(orderData,data.params.id);
+  if(order!=null){
+    res.status(201).json(order);
+  }else{
+    res.status(500).json({message:"Update failed"});
   }
 });

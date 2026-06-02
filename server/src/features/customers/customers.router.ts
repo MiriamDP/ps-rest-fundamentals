@@ -2,7 +2,7 @@ import express from "express";
 import { deleteCustomer, getCustomerDetail, getCustomers, searchCustomers, upsertCustomer } from "./customers.service";
 import { getOrdersForCustomer } from "../orders/orders.service";
 import { validate } from "../../middleware/validation.middleware";
-import { customerPOSTRequestSchema, idNumberRequestSchema, idUUIDRequestSchema } from "../types";
+import { customerPOSTRequestSchema, customerPUTRequestSchema, idNumberRequestSchema, idUUIDRequestSchema } from "../types";
 
 export const customersRouter = express.Router();
 
@@ -50,5 +50,15 @@ customersRouter.delete("/:id",validate(idUUIDRequestSchema),async(req,res)=>{
     res.status(204);
   }else{
     res.status(404).json({message:"Customer not found. Delete failed"});
+  }
+});
+
+customersRouter.put("/:id",validate(customerPUTRequestSchema),async(req,res)=>{
+  const data=customerPUTRequestSchema.parse(req);
+  const customer=await upsertCustomer(data.body, data.params.id);
+  if(customer!=null){
+    res.status(201).json(customer);
+  }else{
+    res.status(500).json({message:"Update failed"});
   }
 });
