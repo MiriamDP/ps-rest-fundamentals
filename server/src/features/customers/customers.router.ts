@@ -1,5 +1,5 @@
 import express from "express";
-import { getCustomerDetail, getCustomers, searchCustomers, upsertCustomer } from "./customers.service";
+import { deleteCustomer, getCustomerDetail, getCustomers, searchCustomers, upsertCustomer } from "./customers.service";
 import { getOrdersForCustomer } from "../orders/orders.service";
 import { validate } from "../../middleware/validation.middleware";
 import { customerPOSTRequestSchema, idNumberRequestSchema, idUUIDRequestSchema } from "../types";
@@ -40,5 +40,15 @@ customersRouter.post("/",validate(customerPOSTRequestSchema),async(req,res)=>{
     res.status(201).json(customer);
   }else{
     res.status(500).json({message:"Creation failed"});
+  }
+});
+
+customersRouter.delete("/:id",validate(idUUIDRequestSchema),async(req,res)=>{
+  const id=idUUIDRequestSchema.parse(req).params.id;
+  const item=await deleteCustomer(id);
+  if(item!=null){
+    res.status(204);
+  }else{
+    res.status(404).json({message:"Customer not found. Delete failed"});
   }
 });

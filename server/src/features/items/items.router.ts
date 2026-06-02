@@ -1,5 +1,5 @@
 import express from "express";
-import { getItemDetail, getItems, upsertItem } from "./items.service";
+import { deleteItem, getItemDetail, getItems, upsertItem } from "./items.service";
 import { validate } from "../../middleware/validation.middleware";
 import { idNumberRequestSchema, itemPOSTRequestSchema } from "../types";
 
@@ -31,6 +31,16 @@ itemsRouter.post("/",validate(itemPOSTRequestSchema),async(req,res)=>{
     res.status(201).json(item);
   }else{
     res.status(500).json({message:"Creation failed"});
+  }
+});
+
+itemsRouter.delete("/:id",validate(idNumberRequestSchema),async(req,res)=>{
+  const id=idNumberRequestSchema.parse(req).params.id;
+  const item=await deleteItem(id);
+  if(item!=null){
+    res.json(item);
+  }else{
+    res.status(404).json({message:"Item not found. Delete failed"});
   }
 });
 
