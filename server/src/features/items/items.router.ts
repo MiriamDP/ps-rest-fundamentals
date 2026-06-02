@@ -3,6 +3,7 @@ import { deleteItem, getItemDetail, getItems, upsertItem } from "./items.service
 import { validate } from "../../middleware/validation.middleware";
 import { idNumberRequestSchema, itemPOSTRequestSchema, itemPUTRequestSchema } from "../types";
 import { create } from "xmlbuilder2";
+import { validatedAccessToken } from "../../middleware/auth.middleware";
 
 export const itemsRouter = express.Router();
 
@@ -37,17 +38,23 @@ itemsRouter.get("/:id",validate(idNumberRequestSchema),async(req,res)=>{
   }
 });
 
-itemsRouter.post("/",validate(itemPOSTRequestSchema),async(req,res)=>{
+itemsRouter.post("/",validatedAccessToken,validate(itemPOSTRequestSchema),async(req,res)=>{
   const data=itemPOSTRequestSchema.parse(req);
   const item=await upsertItem(data.body);
   if(item!=null){
+    if(req.headers["accept"]=="application/xml"){
+      res.status(201).send(create().ele("item",item).end());
+    }
     res.status(201).json(item);
   }else{
+    if(req.headers["accept"]=="application/xml"){
+      res.status(500).send(create().ele("error",{message:"Creation failed"}).end());
+    }
     res.status(500).json({message:"Creation failed"});
   }
 });
 
-itemsRouter.delete("/:id",validate(idNumberRequestSchema),async(req,res)=>{
+itemsRouter.delete("/:id",validatedAccessToken,validate(idNumberRequestSchema),async(req,res)=>{
   const id=idNumberRequestSchema.parse(req).params.id;
   const item=await deleteItem(id);
   if(item!=null){
@@ -57,7 +64,7 @@ itemsRouter.delete("/:id",validate(idNumberRequestSchema),async(req,res)=>{
   }
 });
 
-itemsRouter.put("/:id",validate(itemPUTRequestSchema),async(req,res)=>{
+itemsRouter.put("/:id",validatedAccessToken,validate(itemPUTRequestSchema),async(req,res)=>{
   const data=itemPUTRequestSchema.parse(req);
   const item=await upsertItem(data.body, data.params.id);
   if(item!=null){
