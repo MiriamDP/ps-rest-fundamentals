@@ -2,6 +2,7 @@ import express from "express";
 import { deleteItem, getItemDetail, getItems, upsertItem } from "./items.service";
 import { validate } from "../../middleware/validation.middleware";
 import { idNumberRequestSchema, itemPOSTRequestSchema, itemPUTRequestSchema } from "../types";
+import { create } from "xmlbuilder2";
 
 export const itemsRouter = express.Router();
 
@@ -10,6 +11,13 @@ itemsRouter.get("/",async(req,res)=>{
   items.forEach((item)=>{
     item.imageUrl=buildImageUrl(req,item.id);
   });
+  if(req.headers["accept"]=="application/xml"){
+    const root=create().ele("items");
+    items.forEach((i)=>{
+      root.ele("item",i);
+    });
+    res.status(200).send(root.end({prettyPrint: true}));
+  }
   res.json(items);
 });
 
@@ -18,8 +26,13 @@ itemsRouter.get("/:id",validate(idNumberRequestSchema),async(req,res)=>{
   const item=await getItemDetail(id);
   if(item!=null){
     item.imageUrl=buildImageUrl(req, item.id);
-    res.json(item);
+    if(req.headers["accept"]=="application/xml"){
+      res.status(200).send(create().ele("item",item).end());
+    }
   }else{
+    if(req.headers["accept"]=="application/xml"){
+      res.status(404).send(create().ele("error",{message:"Item Not Found"}).end());
+    }
     res.status(404).json({message:"Item not found"});
   }
 });
