@@ -8,8 +8,11 @@ import { ordersRouter } from "./orders/orders.router";
 export const v1Router = express.Router();
 
 
-v1Router.use("/items", itemsRouter);
+v1Router.use("/items", itemsRouter // #swagger.tags=["Items"]
+);
 
-v1Router.use("/customers",validatedAccessToken, customersRouter);
+v1Router.use("/customers",validatedAccessToken, customersRouter // #swagger.tags=["Customers"]
+);
 
-v1Router.use("/orders",validatedAccessToken, ordersRouter);
+v1Router.use("/orders",validatedAccessToken, ordersRouter // #swagger.tags=["Orders"]
+);

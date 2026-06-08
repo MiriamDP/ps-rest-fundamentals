@@ -7,8 +7,12 @@ import { ordersRouter } from "../v1/orders/orders.router";
 // register routes
 export const v2Router = express.Router();
 
-v2Router.use("/items", itemsRouter);
+v2Router.use("/items", itemsRouter // #swagger.tags=["Items"]
+);
 
-v2Router.use("/customers",validatedAccessToken, customersRouter);
+v2Router.use("/customers",validatedAccessToken, customersRouter // #swagger.tags=["Customers"]
+    // #swagger.security=[{bearerAuth:[]}]
+);
 
-v2Router.use("/orders",validatedAccessToken, ordersRouter);
+v2Router.use("/orders",validatedAccessToken, ordersRouter // #swagger.tags=["Orders"]
+);

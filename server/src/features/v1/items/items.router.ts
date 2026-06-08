@@ -9,6 +9,13 @@ import { ItemsPermissions, SecurityPermissions } from "../../../config/permissio
 export const itemsRouter = express.Router();
 
 itemsRouter.get("/",async(req,res)=>{
+  /*
+    #swagger.summary="Get all items"
+    #swagger.responses[200]={
+      description: "The list of items",
+      schema: {$ref: "#/components/schemas/items"}
+    }
+  */
   const items=await getItems();
   items.forEach((item)=>{
     item.imageUrl=buildImageUrl(req,item.id);
@@ -24,6 +31,13 @@ itemsRouter.get("/",async(req,res)=>{
 });
 
 itemsRouter.get("/:id",validate(idNumberRequestSchema),async(req,res)=>{
+  /*
+    #swagger.summary="Gets a specific item by ID "
+    #swagger.responses[200]={
+      description: "The item",
+      schema: {$ref: "#/components/schemas/itemDetail"}
+    }
+  */
   const id=idNumberRequestSchema.parse(req).params.id;
   const item=await getItemDetail(id);
   if(item!=null){
@@ -40,6 +54,20 @@ itemsRouter.get("/:id",validate(idNumberRequestSchema),async(req,res)=>{
 });
 
 itemsRouter.post("/",validatedAccessToken,checkRequiredScope(ItemsPermissions.Create),validate(itemPOSTRequestSchema),async(req,res)=>{
+  /*
+    #swagger.summary="Gets a specific item by ID "
+    #swagger.requestBody={
+      required: true,
+      schema: {$ref: "#/components/schemas/itemDTO"}
+    }
+    #swagger.responses[201]={
+      description: "The newly created item",
+      schema: {$ref: "#/components/schemas/item"}
+    }
+    #swagger.responses[500]={
+      description: "Item creation failed",
+    }
+  */
   const data=itemPOSTRequestSchema.parse(req);
   const item=await upsertItem(data.body);
   if(item!=null){
@@ -66,6 +94,19 @@ itemsRouter.delete("/:id",validatedAccessToken,checkRequiredScope(SecurityPermis
 });
 
 itemsRouter.put("/:id",validatedAccessToken,checkRequiredScope(ItemsPermissions.Write),validate(itemPUTRequestSchema),async(req,res)=>{
+    /*
+    #swagger.summary="Gets a specific item by ID "
+    #swagger.requestBody={
+      required: true,
+      schema: {$ref: "#/components/schemas/itemDTO"}
+    }
+    #swagger.responses[200]={
+      description: "The updated item",
+      schema: {$ref: "#/components/schemas/item"}
+    }
+    #swagger.security=[bearerAuth:[]}]"
+    }
+  */
   const data=itemPUTRequestSchema.parse(req);
   const item=await upsertItem(data.body, data.params.id);
   if(item!=null){
